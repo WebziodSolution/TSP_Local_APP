@@ -23,6 +23,7 @@ import CompanyTheme from '../settings/companyTheme/companyTheme';
 import AddGeofences from '../../models/geofencesModel/addGeofences';
 
 import AddLocationModel from '../../models/location/addLocationModel';
+import { isNative, pickImage } from '../../../utils/platform';
 
 let tabData = [
     {
@@ -570,8 +571,19 @@ const CompanyDetails = ({ setAlert, handleSetTitle, handleSetCompanyLogo }) => {
         }
     }
 
-    const handleDivClick = () => {
-        fileInputRef.current.click();
+    const handleDivClick = async () => {
+        if (isNative()) {
+            const result = await pickImage();
+            if (result) {
+                setFormDataFile(result.file);
+                setSelectedCompanyDetails((prev) => {
+                    const newRow = { ...prev, companyLogo: result.webPath };
+                    return newRow;
+                });
+            }
+        } else {
+            fileInputRef.current.click();
+        }
     };
 
     const handleDeleteImage = async (e) => {

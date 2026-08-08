@@ -124,9 +124,8 @@ const DashboardComponent = ({ handleSetTitle, handleSetTimeIn, timeIn }) => {
 
             <div
               style={{ color: theme.palette.primary.text.main }}
-              className={`border-2 rounded-md w-full max-w-sm h-44 flex justify-center items-center transition-all ${data?.inUsersData?.length > 0 ? 'cursor-pointer hover:bg-slate-50 hover:border-blue-400 shadow-sm hover:shadow-md' : ''
-                }`}
-              onClick={(e) => handleCardClick(e, "Employee List", data?.inUsersData)}
+              className="border-2 rounded-md w-full max-w-sm h-44 flex justify-center items-center transition-all cursor-pointer hover:bg-slate-50 hover:border-blue-400 shadow-sm hover:shadow-md"
+              onClick={() => navigate('/dashboard/timecard', { state: { selectedTab: 1, filterToday: true } })}
             >
               <div className='text-center'>
                 <p className='md:text-2xl font-bold'>Today's Clock-In</p>
@@ -154,9 +153,8 @@ const DashboardComponent = ({ handleSetTitle, handleSetTimeIn, timeIn }) => {
 
             <div
               style={{ color: theme.palette.primary.text.main }}
-              className={`border-2 rounded-md w-full max-w-sm h-44 flex justify-center items-center transition-all ${data?.outUserData?.length > 0 ? 'cursor-pointer hover:bg-slate-50 hover:border-blue-400 shadow-sm hover:shadow-md' : ''
-                }`}
-              onClick={(e) => handleCardClick(e, "Employee List", data?.outUserData)}
+              className="border-2 rounded-md w-full max-w-sm h-44 flex justify-center items-center transition-all cursor-pointer hover:bg-slate-50 hover:border-blue-400 shadow-sm hover:shadow-md"
+              onClick={() => navigate('/dashboard/timecard', { state: { selectedTab: 1, filterToday: true } })}
             >
               <div className='text-center'>
                 <p className='md:text-2xl font-bold'>Today's Clock-Out</p>

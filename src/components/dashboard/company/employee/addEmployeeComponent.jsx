@@ -35,6 +35,7 @@ import { getAllOvertimeRules } from '../../../../service/overtimeRules/overtimeR
 import { getAllWeekOffTemplate } from '../../../../service/weeklyOff/WeeklyOffService';
 import { createDeduction, deleteDeduction, getAllDeductions } from '../../../../service/deductions/deductionsService';
 import Components from '../../../muiComponents/components';
+import { isNative, pickImage } from '../../../../utils/platform';
 
 const GenderOptions = [
     { id: 1, title: "Male" },
@@ -614,8 +615,16 @@ const AddEmployeeComponent = ({ setAlert, handleSetTitle, handleSetUserDetails }
         }
     }
 
-    const handleDivClick = () => {
-        fileInputRef.current.click();
+    const handleDivClick = async () => {
+        if (isNative()) {
+            const result = await pickImage();
+            if (result) {
+                setFormDataFile(result.file);
+                setValue("profileImage", result.webPath);
+            }
+        } else {
+            fileInputRef.current.click();
+        }
     };
 
     const handleGetEmployeeRoles = async () => {

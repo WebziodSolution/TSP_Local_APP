@@ -4,7 +4,8 @@
   "webDir": "build",
   "plugins": {
     "StatusBar": {
-      "style": "DARK",
+      "overlaysWebView": false,
+      "style": "LIGHT",
       "backgroundColor": "#FFFFFF"
     }
   }

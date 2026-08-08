@@ -1,6 +1,8 @@
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { connect } from 'react-redux';
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
+import { StatusBar, Style } from '@capacitor/status-bar';
+import { isNative } from '../../../utils/platform';
 
 const generateMuiTheme = (theme) => createTheme({
   palette: {
@@ -59,6 +61,38 @@ const generateMuiTheme = (theme) => createTheme({
 const MuiThemeProvider = ({ theme, children }) => {
 
   const muiTheme = useMemo(() => generateMuiTheme(theme), [theme]);
+
+  useEffect(() => {
+    if (isNative()) {
+      const headerColor = theme?.headerBgColor || '#ffffff';
+      
+      // Update background color to match header
+      StatusBar.setBackgroundColor({ color: headerColor }).catch(err => console.warn(err));
+      
+      // Detect if color is dark to set appropriate text color (light vs dark icons)
+      const isDark = (color) => {
+        if (!color) return false;
+        const hex = color.replace('#', '');
+        if (hex.length === 3) {
+          const r = parseInt(hex.substring(0, 1), 16) * 17;
+          const g = parseInt(hex.substring(1, 2), 16) * 17;
+          const b = parseInt(hex.substring(2, 3), 16) * 17;
+          return (r * 0.299 + g * 0.587 + b * 0.114) < 128;
+        }
+        if (hex.length === 6) {
+          const r = parseInt(hex.substring(0, 2), 16);
+          const g = parseInt(hex.substring(2, 4), 16);
+          const b = parseInt(hex.substring(4, 6), 16);
+          return (r * 0.299 + g * 0.587 + b * 0.114) < 128;
+        }
+        return false;
+      };
+
+      StatusBar.setStyle({
+        style: isDark(headerColor) ? Style.Light : Style.Dark
+      }).catch(err => console.warn(err));
+    }
+  }, [theme]);
 
   return (
     <ThemeProvider theme={muiTheme}>

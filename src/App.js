@@ -51,6 +51,8 @@ import ManageLeaveType from "./components/dashboard/permissions/manageLeaveType/
 import ManageEmployeeLeave from "./components/dashboard/permissions/manageEmployeeLeave/manageEmployeeLeave";
 import LoginIOS from "./iosPage/LoginIOS";
 
+import { StatusBar, Style } from '@capacitor/status-bar';
+
 library.add(fas, far)
 
 function App() {
@@ -247,6 +249,12 @@ function App() {
   useEffect(() => {
     SplashScreen.hide();
     if (isNative()) {
+      StatusBar.setOverlaysWebView({ overlay: false }).catch(err => {
+        console.warn("StatusBar setup failed", err);
+      });
+      StatusBar.setStyle({ style: Style.Light }).catch(err => {
+        console.warn("StatusBar style setup failed", err);
+      });
       const hasRequested = localStorage.getItem('hasRequestedPermissions');
       if (!hasRequested) {
         Camera.requestPermissions({ permissions: ['camera', 'photos'] })
@@ -263,7 +271,7 @@ function App() {
   return (
     <>
       <MuiThemeProvider>
-        <div className="h-screen">
+        <div>
           <Loading />
           <GlobalAlert />
           <RouterProvider router={router} />

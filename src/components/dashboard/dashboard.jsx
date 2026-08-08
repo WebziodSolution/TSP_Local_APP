@@ -19,8 +19,7 @@ function Dashboard({ title, handleSetTimeIn }) {
 
   return (
     <ClockProvider onStatusChange={(v) => handleSetTimeIn(v)}>
-      <div style={{ background: theme.palette.primary.background.contentBgColor }} className="flex w-screen lg:w-full lg:overflow-x-hidden">
-        <Header drawerWidth={drawerWidth} />
+      <div style={{ background: theme.palette.primary.background.contentBgColor }} className="flex w-screen h-screen lg:w-full lg:overflow-x-hidden">
 
         <Components.Box
           component="nav"
@@ -37,22 +36,23 @@ function Dashboard({ title, handleSetTimeIn }) {
           />
         </Components.Box>
 
-        <Components.Box
-          component="main"
-          sx={{
-            flexGrow: 1,
-            width: { md: `calc(100% - ${isDrawerOpen ? drawerWidth : 65}px)` },
-            transition: 'margin-left 0.3s ease-in-out, width 0.3s ease-in-out',
-            overflowX: 'auto',
-            paddingTop: 'calc(80px + env(safe-area-inset-top, 0px))',
-            paddingBottom: '15px',
-          }}
-        >
+        <div className="flex flex-col flex-grow h-screen overflow-hidden">
+          <Header drawerWidth={drawerWidth} />
 
-          <div className="lg:px-4">
-            <Outlet />
-          </div>
-        </Components.Box>
+          <Components.Box
+            component="main"
+            sx={{
+              flexGrow: 1,
+              overflowY: 'auto',
+              paddingY: '15px',
+            }}
+          >
+            <div className="lg:px-4">
+              <Outlet />
+            </div>
+          </Components.Box>
+        </div>
+
       </div>
     </ClockProvider>
   );

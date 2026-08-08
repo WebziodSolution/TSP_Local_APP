@@ -40,7 +40,7 @@ const center = {
 };
 
 const AddGeofences = ({ setAlert, open, handleClose, selectedLocationRow, companyId, handleGetLocations }) => {
-    const theme = useTheme();   
+    const theme = useTheme();
     const [loading, setLoading] = useState(false)
 
     const [polygons, setPolygons] = useState([]);
@@ -338,7 +338,7 @@ const AddGeofences = ({ setAlert, open, handleClose, selectedLocationRow, compan
                 // maxWidth='lg'
                 fullScreen
             >
-                <Components.DialogTitle sx={{ m: 0, p: 2 }} id="customized-dialog-title">
+                <Components.DialogTitle sx={{ m: 0, p: 2, pt: 'calc(8px + env(safe-area-inset-top, 0px))' }} id="customized-dialog-title">
                     {selectedLocationRow?.geofenceId ? "Update" : "Create"} Geofences
                 </Components.DialogTitle>
 
@@ -348,7 +348,7 @@ const AddGeofences = ({ setAlert, open, handleClose, selectedLocationRow, compan
                     sx={(theme) => ({
                         position: 'absolute',
                         right: 8,
-                        top: 8,
+                        top: 'calc(8px + env(safe-area-inset-top, 0px))',
                         color: theme.palette.grey[500],
                     })}
                 >
@@ -457,7 +457,7 @@ const AddGeofences = ({ setAlert, open, handleClose, selectedLocationRow, compan
                                         }}
                                     />
                                 )}
-                            
+
                                 {polygons?.map((polygon) => {
                                     const polygonId = polygon.id || `poly-${JSON.stringify(polygon.path)}`;
                                     return (

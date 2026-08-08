@@ -11,7 +11,12 @@ import PTPDFTable from "./PdfTable/PTPDFTable";
 import { filterOptionsByMonth } from "../../../service/common/commonService";
 
 
-const PTReport = () => {
+import { connect } from 'react-redux';
+import { setAlert } from '../../../redux/commonReducers/commonReducers';
+import { savePdf } from '../../../utils/platform';
+
+
+const PTReport = ({ setAlert }) => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo"));
     const [employees, setEmployees] = useState([]);
     const [filter, setFilter] = useState(new Date().getMonth());
@@ -144,7 +149,15 @@ const PTReport = () => {
                 pdf.addImage(imgData, "JPEG", margin, yOffset, imgWidth, imgHeight);
             }
 
-            pdf.save("employee_pt_report.pdf");
+            savePdf(pdf, "employee_pt_report.pdf").then((res) => {
+                if (res.success) {
+                    if (!res.isWeb) {
+                        setAlert({ open: true, message: `PDF saved successfully in Documents folder`, type: 'success' });
+                    }
+                } else {
+                    setAlert({ open: true, message: `Failed to save PDF: ${res.error}`, type: 'error' });
+                }
+            });
 
             setShowPdfContent(false);
             setLoadingPdf(false);
@@ -197,4 +210,4 @@ const PTReport = () => {
     );
 };
 
-export default PTReport;
+export default connect(null, { setAlert })(PTReport);

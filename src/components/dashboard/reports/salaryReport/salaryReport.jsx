@@ -13,7 +13,8 @@ import SalaryStatementPDFTable from "../PdfTable/salaryStatementPDFTable";
 import { getCompanyDetails } from "../../../../service/companyDetails/companyDetailsService";
 import SalarySlip from "../PdfTable/salarySlip";
 import { getListOfYears } from "../../../../service/common/commonService";
-import { handleSetTitle } from "../../../../redux/commonReducers/commonReducers";
+import { handleSetTitle, setAlert } from "../../../../redux/commonReducers/commonReducers";
+import { savePdf } from "../../../../utils/platform";
 import { connect } from "react-redux";
 import { getAllHistory } from "../../../../service/salaryStatementHistory/salaryStatementHistoryService";
 import SalaryStatementModel from "../../../models/salaryStatement/SalaryStatementModel";
@@ -35,7 +36,7 @@ const filterOptions = [
     { id: 12, title: 'December', value: 12 }
 ];
 
-const SalaryReport = ({ handleSetTitle }) => {
+const SalaryReport = ({ setAlert, handleSetTitle }) => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo"));
     const [years, setYears] = useState([]);
 
@@ -329,7 +330,15 @@ const SalaryReport = ({ handleSetTitle }) => {
             pdf.addImage(imgData, "JPEG", xOffset, 10, imgWidth, imgHeight);
         }
 
-        pdf.save(fileName);
+        savePdf(pdf, fileName).then((res) => {
+            if (res.success) {
+                if (!res.isWeb) {
+                    setAlert({ open: true, message: `PDF saved successfully in Documents folder`, type: 'success' });
+                }
+            } else {
+                setAlert({ open: true, message: `Failed to save PDF: ${res.error}`, type: 'error' });
+            }
+        });
     };
 
     const generatePDF = async () => {
@@ -523,7 +532,8 @@ const SalaryReport = ({ handleSetTitle }) => {
 };
 
 const mapDispatchToProps = {
-    handleSetTitle
+    handleSetTitle,
+    setAlert
 };
 
 export default connect(null, mapDispatchToProps)(SalaryReport);

@@ -1,10 +1,22 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import CustomIcons from '../icons/CustomIcons';
+import { isNative, pickImage } from '../../../utils/platform';
 
 export default function FileInputBox({ onFileSelect, value, onRemove, text }) {
     const handleFileChange = (e) => {
         if (onFileSelect && e.target.files[0]) {
             onFileSelect(e.target.files[0]);
+        }
+    };
+
+    const handleBoxClick = async (e) => {
+        if (isNative()) {
+            e.preventDefault();
+            e.stopPropagation();
+            const result = await pickImage();
+            if (result && onFileSelect) {
+                onFileSelect(result.file);
+            }
         }
     };
 
@@ -25,6 +37,7 @@ export default function FileInputBox({ onFileSelect, value, onRemove, text }) {
                 </div>
             ) : (
                 <div
+                    onClick={handleBoxClick}
                     className="relative w-full h-full border border-dashed border-gray-400 rounded-lg bg-white p-10 cursor-pointer hover:border-blue-400 transition flex flex-col items-center justify-center"
                 >
                     <div className="flex flex-col items-center justify-center text-gray-500 pointer-events-none">
@@ -33,14 +46,17 @@ export default function FileInputBox({ onFileSelect, value, onRemove, text }) {
                             {text ? text : 'Click in this area to upload a file'}
                         </p>
                     </div>
-                    <input
-                        type="file"
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                        accept="image/jpg, image/png, image/jpeg, image/JPG, image/PNG, image/JPEG"
-                        onChange={handleFileChange}
-                    />
+                    {!isNative() && (
+                        <input
+                            type="file"
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            accept="image/jpg, image/png, image/jpeg, image/JPG, image/PNG, image/JPEG"
+                            onChange={handleFileChange}
+                        />
+                    )}
                 </div>
             )}
         </div>
     );
 }
+

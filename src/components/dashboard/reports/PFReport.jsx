@@ -10,7 +10,11 @@ import { getCompanyDetails } from "../../../service/companyDetails/companyDetail
 import PFPDFTable from "./PdfTable/PFPDFTable";
 import { filterOptionsByMonth } from "../../../service/common/commonService";
 
-const PFReport = () => {
+import { connect } from 'react-redux';
+import { setAlert } from '../../../redux/commonReducers/commonReducers';
+import { savePdf } from '../../../utils/platform';
+
+const PFReport = ({ setAlert }) => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo"));
     const [employees, setEmployees] = useState([]);
     const [loadingPdf, setLoadingPdf] = useState(false);
@@ -189,7 +193,15 @@ const PFReport = () => {
                 pdf.addImage(imgData, "JPEG", margin, yOffset, imgWidth, imgHeight);
             }
 
-            pdf.save("employee_pf_report.pdf");
+            savePdf(pdf, "employee_pf_report.pdf").then((res) => {
+                if (res.success) {
+                    if (!res.isWeb) {
+                        setAlert({ open: true, message: `PDF saved successfully in Documents folder`, type: 'success' });
+                    }
+                } else {
+                    setAlert({ open: true, message: `Failed to save PDF: ${res.error}`, type: 'error' });
+                }
+            });
 
             setShowPdfContent(false);
             setLoadingPdf(false);
@@ -241,4 +253,4 @@ const PFReport = () => {
     );
 };
 
-export default PFReport;
+export default connect(null, { setAlert })(PFReport);

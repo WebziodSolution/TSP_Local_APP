@@ -551,7 +551,7 @@ function FaceRegistration({ setAlert, open, handleClose, employeeId, type = null
                 aria-labelledby="customized-dialog-title"
                 fullScreen
             >
-                <Components.DialogTitle sx={{ m: 0, p: 2, color: theme.palette.primary.text.main }} id="customized-dialog-title">
+                <Components.DialogTitle sx={{ m: 0, p: 2, pt: 'calc(8px + env(safe-area-inset-top, 0px))', color: theme.palette.primary.text.main }} id="customized-dialog-title">
                     {
                         type === "login" ? "Login with Face" : "Register Face"
                     }
@@ -563,7 +563,7 @@ function FaceRegistration({ setAlert, open, handleClose, employeeId, type = null
                     sx={(theme) => ({
                         position: 'absolute',
                         right: 8,
-                        top: 8,
+                        top: 'calc(8px + env(safe-area-inset-top, 0px))',
                         color: theme.palette.primary.icon,
                     })}
                 >

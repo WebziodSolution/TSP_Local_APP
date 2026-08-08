@@ -425,9 +425,9 @@ const GenerateSalary = ({ setAlert, handleSetTitle }) => {
 
     return (
         <>
-            <div className='py-2 px-4 lg:p-4 border rounded-lg bg-white'>
+            <div className='py-3 px-4 lg:p-4 border rounded-lg bg-white'>
                 <div className='grid grid-col-12 md:grid-cols-5 gap-3 items-center'>
-                    <div>
+                    <div className='mb-4 w-full md:mb-0'>
                         <Select
                             options={years}
                             label={"Select Year"}
@@ -439,7 +439,7 @@ const GenerateSalary = ({ setAlert, handleSetTitle }) => {
                         />
                     </div>
 
-                    <div>
+                    <div className='mb-4 w-full md:mb-0'>
                         <Select
                             options={filterOptions}
                             label={"Filter by Duration"}
@@ -454,18 +454,19 @@ const GenerateSalary = ({ setAlert, handleSetTitle }) => {
                     <div className='mb-4 w-full md:mb-0'>
                         <DatePickerComponent setValue={setValue} control={control} name='startDate' label={`Start Date`} minDate={null} maxDate={watch("endDate")} />
                     </div>
+                    <div className='mb-4 w-full md:mb-0'>
+                        <DatePickerComponent
+                            setValue={setValue}
+                            control={control}
+                            name="endDate"
+                            label="End Date"
+                            minDate={watch("startDate")}
+                            maxDate={new Date()}
+                        />
+                    </div>
 
-                    <DatePickerComponent
-                        setValue={setValue}
-                        control={control}
-                        name="endDate"
-                        label="End Date"
-                        minDate={watch("startDate")}
-                        maxDate={new Date()}
-                    />
 
-
-                    <div>
+                    <div className='mb-4 w-full md:mb-0'>
                         <Controller
                             name="selectedUserId"
                             control={control}

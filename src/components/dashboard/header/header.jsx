@@ -294,13 +294,10 @@ const Header = ({ handleSetCompanyLogo, companyLogo, userDetails, handleSetUserD
     return (
         <>
             <Components.AppBar
-                position="fixed"
+                position="static"
                 sx={{
-                    width: { md: `calc(100% - ${drawerWidth}px)` },
-                    ml: { md: `${drawerWidth}px` },
                     background: theme.palette.primary.background.headerBgColor || 'white',
                     boxShadow: 0,
-                    transition: 'width 0.3s ease-in-out',
                     borderBottom: `1px solid ${theme.palette.primary.background.headerBgColor}`,
                     pt: 'env(safe-area-inset-top, 0px)',
                 }}

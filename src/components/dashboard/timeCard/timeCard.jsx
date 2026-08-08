@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom';
 import { Controller, useForm } from 'react-hook-form';
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
@@ -18,6 +19,7 @@ import { filterOptionsByMonth, handleFormateUTCDateToLocalDate } from '../../../
 import { getAllEmployeeListByCompanyId } from '../../../service/companyEmployee/companyEmployeeService';
 import { connect } from 'react-redux';
 import { handleSetTitle, setAlert } from '../../../redux/commonReducers/commonReducers';
+import { savePdf } from '../../../utils/platform';
 import Components from '../../muiComponents/components';
 import PermissionWrapper from '../../common/permissionWrapper/PermissionWrapper';
 import Button from '../../common/buttons/button';
@@ -49,6 +51,7 @@ const TimeCard = ({ handleSetTitle, setAlert }) => {
     dayjs.extend(utc);
     dayjs.extend(timezone);
 
+    const location = useLocation();
     const userInfo = JSON.parse(localStorage.getItem("userInfo"))
 
     const [selectedTab, setSelectedTab] = useState(0);
@@ -67,6 +70,8 @@ const TimeCard = ({ handleSetTitle, setAlert }) => {
 
     const [clockInOutId, setClockInOutId] = useState(null);
     const [filter, setFilter] = useState(null);
+    const [isInitialTodayFilter, setIsInitialTodayFilter] = useState(!!location.state?.filterToday);
+    const [showFilters, setShowFilters] = useState(false);
     const [dialog, setDialog] = useState({ open: false, title: '', message: '', actionButtonText: '' });
     const [timeInOutId, setTimeInOutId] = useState(null)
     const [loading, setLoading] = useState(false);
@@ -386,19 +391,45 @@ const TimeCard = ({ handleSetTitle, setAlert }) => {
         document.title = "Time Card - Calculate Salary";
         handleSetTitle("Time Card")
 
-        const today = new Date();
-        const lastMonth = today.getMonth();
-        const defaultFilter = filterOptionsByMonth?.find(option => option.value === lastMonth);
-        setFilter(defaultFilter);
+        let tab = 0;
+        if (location.state?.selectedTab !== undefined) {
+            tab = location.state.selectedTab;
+            setSelectedTab(tab);
+        }
+
+        if (location.state?.filterToday) {
+            const today = new Date();
+            const day = today.getDate().toString().padStart(2, "0");
+            const month = (today.getMonth() + 1).toString().padStart(2, "0");
+            const year = today.getFullYear();
+            const todayStr = `${day}/${month}/${year}`;
+            setValue('startDate', todayStr);
+            setValue('endDate', todayStr);
+            setFilter(null);
+        } else {
+            const today = new Date();
+            const lastMonth = today.getMonth();
+            const defaultFilter = filterOptionsByMonth?.find(option => option.value === lastMonth);
+            setFilter(defaultFilter);
+        }
 
         handleGetCompanyInfo()
         handleGetAllUsers()
         handleGetAllDepartment()
-        handleCallFilterAPI()
+
+        if (tab === 0) {
+            handleGetAllRecordsGroupByUser()
+        } else {
+            handleGetAllEntriesByUserId()
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     useEffect(() => {
+        if (isInitialTodayFilter) {
+            setIsInitialTodayFilter(false);
+            return;
+        }
         setDates();
     }, [filter]);
 
@@ -730,9 +761,16 @@ const TimeCard = ({ handleSetTitle, setAlert }) => {
                 pdf.addImage(rendered.imgData, "JPEG", 0, 0, rendered.width, rendered.height, undefined, "FAST");
             }
 
-            pdf.save(
-                `Employee_Attendance_Report_${dayjs(watch("startDate"), "DD/MM/YYYY").format("DD-MM-YYYY")}_To_${dayjs(watch("endDate"), "DD/MM/YYYY").format("DD-MM-YYYY")}.pdf`
-            );
+            const fileName = `Employee_Attendance_Report_${dayjs(watch("startDate"), "DD/MM/YYYY").format("DD-MM-YYYY")}_To_${dayjs(watch("endDate"), "DD/MM/YYYY").format("DD-MM-YYYY")}.pdf`;
+            savePdf(pdf, fileName).then((res) => {
+                if (res.success) {
+                    if (!res.isWeb) {
+                        setAlert({ open: true, message: `PDF saved successfully in Documents folder`, type: 'success' });
+                    }
+                } else {
+                    setAlert({ open: true, message: `Failed to save PDF: ${res.error}`, type: 'error' });
+                }
+            });
 
             setShowPdfContent(false);
             setLoadingDetailPdf(false);
@@ -776,9 +814,18 @@ const TimeCard = ({ handleSetTitle, setAlert }) => {
     // --- Render ---
     return (
         <>
-            <div className='py-2 px-4 lg:p-4 border rounded-lg bg-white'>
-                <div className='grid grid-col-12 md:grid-cols-6 gap-3 items-center'>
-                    <div>
+             <div className='py-2 px-4 lg:p-4 border rounded-lg bg-white'>
+                {/* Mobile Filter Toggle Icon Button */}
+                <div className='md:hidden mb-2 flex justify-end'>
+                    <Components.Tooltip title={showFilters ? 'Hide Filters' : 'Show Filters'}>
+                        <Components.IconButton onClick={() => setShowFilters(!showFilters)} color="primary">
+                            <CustomIcons iconName={showFilters ? "fa-solid fa-xmark" : "fa-solid fa-filter"} css="h-5 w-5" />
+                        </Components.IconButton>
+                    </Components.Tooltip>
+                </div>
+
+                <div className={`grid grid-col-12 md:grid-cols-6 gap-3 items-center ${showFilters ? 'block' : 'hidden md:grid'}`}>
+                    <div className='mb-4 w-full md:mb-0'>
                         <Select
                             options={filterOptionsByMonth}
                             label={"Filter by Duration"}
@@ -888,22 +935,6 @@ const TimeCard = ({ handleSetTitle, setAlert }) => {
                         </div>
                     </div>
                 )}
-
-                {/* <div className="self-stretch md:inline-flex justify-start items-center gap-10 mt-5">
-                    <div className="md:inline-flex flex-col justify-center items-start gap-3">
-                        <div className="inline-flex justify-start items-center gap-[15px]">
-                            <div className="justify-start text-xs font-bold  uppercase leading-normal tracking-tight">Total Hours :</div>
-                            <div className="justify-start text-xs font-medium uppercase leading-normal tracking-tight">{formatTotalDuration(getTotalDurationInMs(rows))}</div>
-                        </div>
-                    </div>
-
-                    <div className="md:inline-flex flex-col justify-center items-start gap-3">
-                        <div className="inline-flex justify-start items-center gap-[15px]">
-                            <div className="justify-start text-xs font-bold uppercase leading-normal tracking-tight">Total OT : </div>
-                            <div className="justify-start text-xs font-medium uppercase leading-normal tracking-tight">{formatHoursToHrMin(getTotalOT(rows))}</div>
-                        </div>
-                    </div>
-                </div> */}
             </div>
 
             {showPdfContent && (
