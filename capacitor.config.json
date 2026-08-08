@@ -1,0 +1,11 @@
+{
+  "appId": "com.calcsalary.webapp",
+  "appName": "calcsalary_webapp",
+  "webDir": "build",
+  "plugins": {
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#FFFFFF"
+    }
+  }
+}

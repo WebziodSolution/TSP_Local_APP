@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+ <!-- For API 28+ -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+    
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- Local dev API -->
+        <!-- Production API (HTTPS is fine, you don’t need cleartext but no harm) -->
+        <domain includeSubdomains="true">democalcsalary.ematrixinfotech.com</domain>        
+    </domain-config>
+</network-security-config>
