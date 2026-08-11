@@ -48,7 +48,7 @@
     "react-router-dom": "^6.28.0",
     "react-scripts": "5.0.1",
     "redux": "^5.0.1",
-    "timelogic_webapp": "file:",
+    "CalcSalary Webapp": "file:",
     "uuid": "^11.1.0"
   },
   "scripts": {
@@ -56,7 +56,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "build:local": "env-cmd -f .env.local react-scripts build",
+    "build:local": "build_apk_local.bat",
     "build:dev": "env-cmd -f .env.dev react-scripts build",
     "clean:local": "rimraf build",
     "build:devapk": "build_apk_dev.bat"

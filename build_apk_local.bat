@@ -4,7 +4,7 @@ set ERRORS=0
 
 REM Exit if any command fails
 call :run "npm run clean:local" || goto :error
-call :run "npm run build:dev" || goto :error
+call :run "npm run build:local" || goto :error
 call :run "npx cap copy" || goto :error
 call :run "npx cap sync" || goto :error
 

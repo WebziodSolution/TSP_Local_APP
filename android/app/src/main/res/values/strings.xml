@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">timelogic_webapp</string>
-    <string name="title_activity_main">timelogic_webapp</string>
+    <string name="app_name">CalcSalary Webapp</string>
+    <string name="title_activity_main">CalcSalary Webapp</string>
     <string name="package_name">com.timelogic.webapp</string>
     <string name="custom_url_scheme">com.timelogic.webapp</string>
 </resources>
