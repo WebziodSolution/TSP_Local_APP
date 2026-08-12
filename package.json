@@ -56,7 +56,8 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "build:local": "build_apk_local.bat",
+    "build:local": "env-cmd -f .env.local react-scripts build",
+    "build:localapk": "build_apk_local.bat",
     "build:dev": "env-cmd -f .env.dev react-scripts build",
     "clean:local": "rimraf build",
     "build:devapk": "build_apk_dev.bat"

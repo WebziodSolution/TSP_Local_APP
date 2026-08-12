@@ -19,7 +19,6 @@ const BootstrapDialog = styled(Components.Dialog)(({ theme }) => ({
 }));
 
 const API_BASE_URL = faceRecognitionAPIBaseURL;
-const modelsPath = faceRecognitionModelURL;
 
 function FaceRegistration({ setAlert, open, handleClose, employeeId, type = null, setLoginInfo }) {
     const theme = useTheme();
@@ -83,18 +82,40 @@ function FaceRegistration({ setAlert, open, handleClose, employeeId, type = null
             setModelsLoaded(true);
             return;
         }
-        try {
-            await Promise.all([
-                faceapi.nets.tinyFaceDetector.load(modelsPath),
-                faceapi.nets.faceLandmark68Net.load(modelsPath),
-                faceapi.nets.faceRecognitionNet.load(modelsPath)
-            ]);
-            setModelsLoaded(true);
-            console.log('Face-API models loaded successfully.');
-        } catch (error) {
-            console.error('Failed to load face-api.js models:', error);
-            showMessage(setRegisterMessage, 'Error loading face detection models. Please refresh.', 'error');
+
+        const candidatePaths = [
+            faceRecognitionModelURL,
+            `${process.env.PUBLIC_URL || ''}/models`,
+            '/models',
+            `${typeof window !== 'undefined' && window.location?.origin ? window.location.origin : ''}/models`,
+            'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights',
+            'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@0.22.2/weights'
+        ]
+            .filter(Boolean)
+            .map((p) => p.replace(/\/+$/, ''));
+
+        const uniquePaths = [...new Set(candidatePaths)];
+        let lastError = null;
+
+        for (const path of uniquePaths) {
+            try {
+                console.log(`[FaceRegistrationModal] Loading models from: ${path}`);
+                await Promise.all([
+                    faceapi.nets.tinyFaceDetector.loadFromUri ? faceapi.nets.tinyFaceDetector.loadFromUri(path) : faceapi.nets.tinyFaceDetector.load(path),
+                    faceapi.nets.faceLandmark68Net.loadFromUri ? faceapi.nets.faceLandmark68Net.loadFromUri(path) : faceapi.nets.faceLandmark68Net.load(path),
+                    faceapi.nets.faceRecognitionNet.loadFromUri ? faceapi.nets.faceRecognitionNet.loadFromUri(path) : faceapi.nets.faceRecognitionNet.load(path)
+                ]);
+                setModelsLoaded(true);
+                console.log(`[FaceRegistrationModal] Face-API models loaded successfully from: ${path}`);
+                return;
+            } catch (error) {
+                console.warn(`[FaceRegistrationModal] Failed to load models from ${path}:`, error);
+                lastError = error;
+            }
         }
+
+        console.error('Failed to load face-api.js models from all sources:', lastError);
+        showMessage(setRegisterMessage, 'Error loading face detection models. Please refresh.', 'error');
     };
 
     const handlePlayVideo = async (videoElement) => {
@@ -516,9 +537,9 @@ function FaceRegistration({ setAlert, open, handleClose, employeeId, type = null
         setIsLoading(true);
         clearMessage(setRegisterMessage);
 
-        if (!capturedImageDataURL || !faceDescriptor) {
+        if (!capturedImageDataURL) {
             setIsLoading(false);
-            showMessage(setRegisterMessage, 'No valid face descriptor found. Please retake photo.', 'error');
+            showMessage(setRegisterMessage, 'Please capture your photo before proceeding.', 'error');
             return;
         }
 
@@ -528,7 +549,21 @@ function FaceRegistration({ setAlert, open, handleClose, employeeId, type = null
         const apiEndpoint = isLogin ? "/login" : "/register";
 
         formData.append('employeeId', employeeId);
-        formData.append('faceDescriptor', faceDescriptor);
+
+        // Send captured photo as JPEG image file for InsightFace 512D ArcFace processing
+        try {
+            const imageBlob = dataURLtoBlob(capturedImageDataURL);
+            formData.append('image', imageBlob, 'face.jpg');
+        } catch (e) {
+            console.error('Error converting dataURL to blob:', e);
+        }
+
+        // Also send base64 data and descriptor for maximum server compatibility
+        formData.append('image_base64', capturedImageDataURL);
+        if (faceDescriptor) {
+            formData.append('faceDescriptor', faceDescriptor);
+        }
+
         try {
             const response = await fetch(`${API_BASE_URL}${apiEndpoint}`, {
                 method: 'POST',
@@ -725,7 +760,6 @@ const mapDispatchToProps = {
 };
 
 export default connect(null, mapDispatchToProps)(FaceRegistration);
-
 
 
 // import React, { useEffect, useRef, useState } from 'react';

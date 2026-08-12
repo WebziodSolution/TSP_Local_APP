@@ -252,7 +252,7 @@ function App() {
       StatusBar.setOverlaysWebView({ overlay: false }).catch(err => {
         console.warn("StatusBar setup failed", err);
       });
-      StatusBar.setStyle({ style: Style.Light }).catch(err => {
+      StatusBar.setStyle({ style: Style.Dark }).catch(err => {
         console.warn("StatusBar style setup failed", err);
       });
       const hasRequested = localStorage.getItem('hasRequestedPermissions');
