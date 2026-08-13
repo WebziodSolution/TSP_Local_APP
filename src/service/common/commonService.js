@@ -595,18 +595,94 @@ export async function playBeep() {
         console.warn("Beep playback failed:", err);
     }
 }
-export const speakMessage = (message) => {
+// Keep a global reference to active utterances to prevent garbage collection on Safari/Chrome
+const activeUtterances = new Set();
+
+let isSpeechUnlocked = false;
+
+export const unlockSpeech = () => {
+    if (isSpeechUnlocked || typeof window === 'undefined' || !window.speechSynthesis) return;
     try {
-        if (!window.speechSynthesis) {
+        window.speechSynthesis.resume();
+        const utterance = new SpeechSynthesisUtterance("");
+        utterance.volume = 0;
+        window.speechSynthesis.speak(utterance);
+        isSpeechUnlocked = true;
+        console.log("SpeechSynthesis unlocked successfully.");
+        
+        // Clean up event listeners
+        window.removeEventListener("click", unlockSpeech);
+        window.removeEventListener("touchstart", unlockSpeech);
+        window.removeEventListener("touchend", unlockSpeech);
+    } catch (e) {
+        console.warn("Failed to unlock SpeechSynthesis:", e);
+    }
+};
+
+if (typeof window !== "undefined") {
+    window.addEventListener("click", unlockSpeech);
+    window.addEventListener("touchstart", unlockSpeech);
+    window.addEventListener("touchend", unlockSpeech);
+}
+
+const getSystemVoices = () => {
+    return new Promise((resolve) => {
+        if (typeof window === 'undefined' || !window.speechSynthesis) {
+            resolve([]);
+            return;
+        }
+        let voices = window.speechSynthesis.getVoices();
+        if (voices && voices.length > 0) {
+            resolve(voices);
+            return;
+        }
+        
+        // If not loaded yet, wait for voiceschanged event
+        const onVoicesChanged = () => {
+            voices = window.speechSynthesis.getVoices();
+            resolve(voices);
+            window.speechSynthesis.onvoiceschanged = null;
+        };
+        window.speechSynthesis.onvoiceschanged = onVoicesChanged;
+        
+        // Fallback timeout to not block forever
+        setTimeout(() => {
+            if (window.speechSynthesis.onvoiceschanged === onVoicesChanged) {
+                window.speechSynthesis.onvoiceschanged = null;
+            }
+            resolve(window.speechSynthesis.getVoices() || []);
+        }, 800);
+    });
+};
+
+export const speakMessage = async (message) => {
+    try {
+        if (typeof window === 'undefined' || !window.speechSynthesis) {
             console.error("Browser does not support Speech Synthesis");
             return;
         }
 
+        // Try unlocking/priming if it hasn't been done yet
+        unlockSpeech();
+
         // Cancel any active/stuck speech synthesis queues
         window.speechSynthesis.cancel();
+        
+        // Always resume before speaking to avoid paused/stuck states
+        window.speechSynthesis.resume();
 
         const utterance = new SpeechSynthesisUtterance(message);
-        const voices = window.speechSynthesis.getVoices();
+        
+        // Add to active set to prevent garbage collection
+        activeUtterances.add(utterance);
+        
+        const cleanup = () => {
+            activeUtterances.delete(utterance);
+        };
+        utterance.onend = cleanup;
+        utterance.onerror = cleanup;
+
+        const voices = await getSystemVoices();
 
         let selectedVoice = voices.find(
             (v) => v.lang.toLowerCase().startsWith("en") && /female/i.test(v.name)
@@ -622,6 +698,9 @@ export const speakMessage = (message) => {
 
         if (selectedVoice) {
             utterance.voice = selectedVoice;
+            utterance.lang = selectedVoice.lang;
+        } else {
+            utterance.lang = "en-US";
         }
 
         utterance.rate = 0.8;

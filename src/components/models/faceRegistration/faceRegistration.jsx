@@ -19,6 +19,7 @@ const BootstrapDialog = styled(Components.Dialog)(({ theme }) => ({
 }));
 
 const API_BASE_URL = faceRecognitionAPIBaseURL;
+const modelsPath = faceRecognitionModelURL;
 
 function FaceRegistration({ setAlert, open, handleClose, employeeId, type = null, setLoginInfo }) {
     const theme = useTheme();
@@ -82,40 +83,18 @@ function FaceRegistration({ setAlert, open, handleClose, employeeId, type = null
             setModelsLoaded(true);
             return;
         }
-
-        const candidatePaths = [
-            faceRecognitionModelURL,
-            `${process.env.PUBLIC_URL || ''}/models`,
-            '/models',
-            `${typeof window !== 'undefined' && window.location?.origin ? window.location.origin : ''}/models`,
-            'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights',
-            'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@0.22.2/weights'
-        ]
-            .filter(Boolean)
-            .map((p) => p.replace(/\/+$/, ''));
-
-        const uniquePaths = [...new Set(candidatePaths)];
-        let lastError = null;
-
-        for (const path of uniquePaths) {
-            try {
-                console.log(`[FaceRegistrationModal] Loading models from: ${path}`);
-                await Promise.all([
-                    faceapi.nets.tinyFaceDetector.loadFromUri ? faceapi.nets.tinyFaceDetector.loadFromUri(path) : faceapi.nets.tinyFaceDetector.load(path),
-                    faceapi.nets.faceLandmark68Net.loadFromUri ? faceapi.nets.faceLandmark68Net.loadFromUri(path) : faceapi.nets.faceLandmark68Net.load(path),
-                    faceapi.nets.faceRecognitionNet.loadFromUri ? faceapi.nets.faceRecognitionNet.loadFromUri(path) : faceapi.nets.faceRecognitionNet.load(path)
-                ]);
-                setModelsLoaded(true);
-                console.log(`[FaceRegistrationModal] Face-API models loaded successfully from: ${path}`);
-                return;
-            } catch (error) {
-                console.warn(`[FaceRegistrationModal] Failed to load models from ${path}:`, error);
-                lastError = error;
-            }
+        try {
+            await Promise.all([
+                faceapi.nets.tinyFaceDetector.load(modelsPath),
+                faceapi.nets.faceLandmark68Net.load(modelsPath),
+                faceapi.nets.faceRecognitionNet.load(modelsPath)
+            ]);
+            setModelsLoaded(true);
+            console.log('Face-API models loaded successfully.');
+        } catch (error) {
+            console.error('Failed to load face-api.js models:', error);
+            showMessage(setRegisterMessage, 'Error loading face detection models. Please refresh.', 'error');
         }
-
-        console.error('Failed to load face-api.js models from all sources:', lastError);
-        showMessage(setRegisterMessage, 'Error loading face detection models. Please refresh.', 'error');
     };
 
     const handlePlayVideo = async (videoElement) => {
@@ -687,12 +666,12 @@ function FaceRegistration({ setAlert, open, handleClose, employeeId, type = null
                                     autoPlay
                                     muted
                                     playsInline
-                                    className="absolute top-0 left-0 w-full h-full object-cover"
+                                    className="absolute top-0 left-0 w-full h-full object-cover -scale-x-100"
                                 />
                                 <canvas
                                     id="detectionCanvas"
                                     ref={detectionCanvasRef}
-                                    className="absolute top-0 left-0 w-full h-full"
+                                    className="absolute top-0 left-0 w-full h-full -scale-x-100"
                                 />
                                 <div
                                     className="face-frame absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 md:w-52 h-4/5 md:max-w-[25rem] max-h-[32rem] border-2 border-opacity-80 border-red-500 rounded-xl pointer-events-none z-10 transition-colors"
@@ -716,7 +695,7 @@ function FaceRegistration({ setAlert, open, handleClose, employeeId, type = null
                                     ref={capturedPhotoRef}
                                     src={capturedImageDataURL || ''}
                                     alt="Captured Preview"
-                                    className=" w-full h-full object-cover rounded-lg"
+                                    className=" w-full h-full object-cover rounded-lg -scale-x-100"
                                 />
 
                                 {/* Retake Button Overlay */}
@@ -760,7 +739,6 @@ const mapDispatchToProps = {
 };
 
 export default connect(null, mapDispatchToProps)(FaceRegistration);
-
 
 // import React, { useEffect, useRef, useState } from 'react';
 // import * as faceapi from 'face-api.js';
