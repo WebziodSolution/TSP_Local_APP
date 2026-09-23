@@ -83,16 +83,38 @@ function FaceRegistration({ setAlert, open, handleClose, employeeId, type = null
             setModelsLoaded(true);
             return;
         }
-        try {
-            await Promise.all([
-                faceapi.nets.tinyFaceDetector.load(modelsPath),
-                faceapi.nets.faceLandmark68Net.load(modelsPath),
-                faceapi.nets.faceRecognitionNet.load(modelsPath)
-            ]);
-            setModelsLoaded(true);
-            console.log('Face-API models loaded successfully.');
-        } catch (error) {
-            console.error('Failed to load face-api.js models:', error);
+
+        const candidatePaths = Array.from(new Set([
+            modelsPath,
+            '/models',
+            `${process.env.PUBLIC_URL || ''}/models`,
+            'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights'
+        ].filter(p => p && typeof p === 'string' && p.trim() !== '')));
+
+        let loaded = false;
+        let lastError = null;
+
+        for (const path of candidatePaths) {
+            try {
+                console.log(`Loading face-api models from: ${path}`);
+                await Promise.all([
+                    faceapi.nets.tinyFaceDetector.load(path),
+                    faceapi.nets.faceLandmark68Net.load(path),
+                    faceapi.nets.faceRecognitionNet.load(path)
+                ]);
+                setModelsLoaded(true);
+                clearMessage(setRegisterMessage);
+                console.log(`Face-API models loaded successfully from: ${path}`);
+                loaded = true;
+                break;
+            } catch (error) {
+                console.warn(`Failed to load face-api models from ${path}:`, error);
+                lastError = error;
+            }
+        }
+
+        if (!loaded) {
+            console.error('Failed to load face-api.js models from all sources:', lastError);
             showMessage(setRegisterMessage, 'Error loading face detection models. Please refresh.', 'error');
         }
     };
